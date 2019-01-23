@@ -18,6 +18,9 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        GetRawData getRawData = new GetRawData();
+        getRawData.execute("https://api.flickr.com/services/feeds/photos_public.gne?tags=dogs,puppies&format=json&nojsoncallback=1");
+
         Log.d(TAG, "onCreate: exit");
     }
 

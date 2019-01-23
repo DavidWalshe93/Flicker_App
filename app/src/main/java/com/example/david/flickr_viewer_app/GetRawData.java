@@ -19,13 +19,13 @@ class GetRawData extends AsyncTask<String, Void, String> {
     private static final String TAG = "GetRawData";
     private DownloadStatus downloadStatus;
 
-    public GetRawData(DownloadStatus downloadStatus) {
+    public GetRawData() {
         this.downloadStatus = DownloadStatus.IDLE;
     }
 
     @Override
     protected void onPostExecute(String s) {
-        super.onPostExecute(s);
+        Log.d(TAG, "GetRawData: paramater = " + s);
     }
 
     @Override
