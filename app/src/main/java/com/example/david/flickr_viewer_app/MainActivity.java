@@ -7,7 +7,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity {
+//David Walshe
+//23/01/2019
+
+public class MainActivity extends AppCompatActivity implements GetRawData.OnDownloadComplete {
     private static final String TAG = "MainActivity";
 
     @Override
@@ -15,10 +18,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate: start");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        GetRawData getRawData = new GetRawData();
+        GetRawData getRawData = new GetRawData(this);
         getRawData.execute("https://api.flickr.com/services/feeds/photos_public.gne?tags=dogs,puppies&format=json&nojsoncallback=1");
 
         Log.d(TAG, "onCreate: exit");
@@ -45,5 +48,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onDownloadComplete(String data, DownloadStatus status) {
+        if (status == DownloadStatus.OK) {
+            Log.d(TAG, "onDownloadComplete: data is " + data);
+        } else {
+            Log.e(TAG, "onDownloadComplete: failed with status " + status);
+        }
     }
 }
