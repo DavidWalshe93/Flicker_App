@@ -42,6 +42,7 @@ class GetRawData extends AsyncTask<String, Void, String> {
             downloadStatus = DownloadStatus.PROCESSING;
             URL url = new URL(strings[0]);
 
+            // Connect to the URL to download data.
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
@@ -52,9 +53,9 @@ class GetRawData extends AsyncTask<String, Void, String> {
 
             br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
-            String line;
-            while(null != (line = br.readLine())) {
-                result.append(line).append("\n");
+            // Reading in data from the connection, one line at a time.
+            for(String line = br.readLine(); line != null; line = br.readLine()) {
+                result.append(line).append("\n");       // Append \n as readLine removes them.
             }
 
             downloadStatus = DownloadStatus.OK;
@@ -74,7 +75,7 @@ class GetRawData extends AsyncTask<String, Void, String> {
                 try {
                     br.close();
                 } catch (IOException e) {
-                    Log.e(TAG, "doInBackground: IO Exception " e.getMessage());
+                    Log.e(TAG, "doInBackground: IO Exception " + e.getMessage());
                 }
             }
         }
