@@ -4,6 +4,7 @@ package com.example.david.flickr_viewer_app;
 //28/01/2019
 
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -13,7 +14,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-class GetFlickrJsonData implements GetRawData.OnDownloadComplete {
+class GetFlickrJsonData extends AsyncTask<String, Void, List<Photo>> implements GetRawData.OnDownloadComplete {
     private static final String TAG = "GetFlickrJsonData";
 
     private List<Photo> photoList = null;
@@ -26,6 +27,7 @@ class GetFlickrJsonData implements GetRawData.OnDownloadComplete {
         void onDataAvailable(List<Photo> data, DownloadStatus status);
     }
 
+    // Constructor
     public GetFlickrJsonData(String baseURL, String language, boolean matchAll, OnDataAvailable callBack) {
         this.baseURL = baseURL;
         this.language = language;
@@ -33,6 +35,7 @@ class GetFlickrJsonData implements GetRawData.OnDownloadComplete {
         this.callBack = callBack;
     }
 
+    // get raw JSON data via async task
     void executeOnSameThread(String searchCriteria) {
         Log.d(TAG, "executeOnSameThread: starts");
         String destinationUrl = createUrl(searchCriteria, language, matchAll);
@@ -42,6 +45,25 @@ class GetFlickrJsonData implements GetRawData.OnDownloadComplete {
         Log.d(TAG, "executeOnSameThread: ends");
     }
 
+    @Override
+    protected void onPostExecute(List<Photo> photos) {
+        Log.d(TAG, "onPostExecute: starts");
+        if (callBack != null) {
+            callBack.onDataAvailable(photoList, DownloadStatus.OK);
+        }
+    }
+
+    @Override
+    protected List<Photo> doInBackground(String... params) {
+        String destinationUri = createUrl(params[0], language, matchAll);
+        GetRawData getRawData = new GetRawData(this);
+        getRawData.runInSameThread(destinationUri);
+
+        Log.d(TAG, "doInBackground: ends");
+        return photoList;
+    }
+
+    // Create a uri usable by the flickr API
     private String createUrl(String searchCritiria, String lang, boolean matchAll) {
         Log.d(TAG, "createUrl: starts");
 
@@ -54,6 +76,7 @@ class GetFlickrJsonData implements GetRawData.OnDownloadComplete {
                 .build().toString();
     }
 
+    // Parse the data from the JSON string returned by getRawData into there individual fields
     @Override
     public void onDownloadComplete(String data, DownloadStatus status) {
         Log.d(TAG, "onDownloadComplete: starts. Status = " + status);
@@ -75,12 +98,24 @@ class GetFlickrJsonData implements GetRawData.OnDownloadComplete {
                     JSONObject jsonMedia = jsonPhoto.getJSONObject("media");
                     String photoUrl = jsonMedia.getString("m");
 
+                    // Larger image format
                     String link = photoUrl.replaceFirst("_m.", "_b.");
+
+                    Photo photoObject = new Photo(title, author, authorId, link, tags, photoUrl);
+                    photoList.add(photoObject);
+
+                    Log.d(TAG, "onDownloadComplete: " + photoObject.toString());
                 }
             } catch (JSONException e) {
                 Log.e(TAG, "onDownloadComplete: JSON error: " + e.getMessage());
+                status = DownloadStatus.FAILED_OR_EMPTY;
             }
         }
+        if (callBack != null) {
+            // inform the caller the processing of JSON is done or returning null if there was an 
+            // error
+            callBack.onDataAvailable(photoList, status);
+        }
+        Log.d(TAG, "onDownloadComplete: ends");
     }
-
 }
